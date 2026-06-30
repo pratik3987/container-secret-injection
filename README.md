@@ -12,8 +12,9 @@ Build:
 ```bash
 go build ./cmd/webhook
 go build ./cmd/runner
-docker build -f Dockerfile.webhook -t example/vault-webhook:webhook .
-docker build -f Dockerfile.runner -t example/vault-webhook:runner .
+# Replace <OWNER> with your GitHub org/user
+docker build -f Dockerfile.webhook -t ghcr.io/<OWNER>/vault-webhook:webhook .
+docker build -f Dockerfile.runner -t ghcr.io/<OWNER>/vault-webhook:runner .
 ```
 
 Security:

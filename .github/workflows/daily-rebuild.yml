@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,11 +62,25 @@ jobs:
           done
           cat .github/image-digests.json
 
-      - name: Rebuild images (pull base)
-        run: |
-          set -euo pipefail
-          docker buildx build --pull --load -f Dockerfile.webhook -t example/vault-webhook:webhook .
-          docker buildx build --pull --load -f Dockerfile.runner -t example/vault-webhook:runner .
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rebuild and push images to GHCR
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/vault-webhook:webhook
+            ghcr.io/${{ github.repository_owner }}/vault-webhook:runner
+          pull: true
+          file: Dockerfile.webhook
+          context: .
+
 
       - name: Create PR when digests changed
         uses: peter-evans/create-pull-request@v4

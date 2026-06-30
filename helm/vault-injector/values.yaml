@@ -2,15 +2,16 @@ replicaCount: 1
 
 image:
   controller:
-    repository: example/vault-webhook
+    # Replace <OWNER> with your GitHub org/user
+    repository: ghcr.io/<OWNER>/vault-webhook
     tag: controller
     pullPolicy: IfNotPresent
   webhook:
-    repository: example/vault-webhook
+    repository: ghcr.io/<OWNER>/vault-webhook
     tag: webhook
     pullPolicy: IfNotPresent
   runner:
-    repository: example/vault-webhook
+    repository: ghcr.io/<OWNER>/vault-webhook
     tag: runner
     pullPolicy: IfNotPresent
 
