@@ -1,7 +1,6 @@
 package main
 
 import (
-    "flag"
     "os"
 
     ctrl "sigs.k8s.io/controller-runtime"
@@ -12,11 +11,8 @@ import (
 )
 
 func main() {
-    mgrAddr := flag.String("metrics-addr", ":8080", "metrics address")
-    flag.Parse()
-
     cfg := config.GetConfigOrDie()
-    mgr, err := ctrl.NewManager(cfg, ctrl.Options{MetricsBindAddress: *mgrAddr})
+    mgr, err := ctrl.NewManager(cfg, ctrl.Options{})
     if err != nil {
         os.Exit(1)
     }

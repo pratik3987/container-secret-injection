@@ -33,5 +33,5 @@ type VaultInjector struct {
 type VaultInjectorList struct {
     metav1.TypeMeta `json:",inline"`
     metav1.ListMeta `json:"metadata,omitempty"`
-    Items           []VaultInjector `json:"items"
+    Items           []VaultInjector `json:"items"`
 }

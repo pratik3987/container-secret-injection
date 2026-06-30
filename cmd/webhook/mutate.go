@@ -50,7 +50,7 @@ func mutateHandler(w http.ResponseWriter, r *http.Request) {
 
     var pod corev1.Pod
     if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
-        resp.Result = &metaStatus("failed to decode pod")
+        resp.Result = metaStatus("failed to decode pod")
         review.Response = &resp
         writeResponse(w, &review)
         return
@@ -83,8 +83,8 @@ func writeResponse(w http.ResponseWriter, review *admissionv1.AdmissionReview) {
     w.Write(out)
 }
 
-func metaStatus(msg string) metav1.Status {
-    return metav1.Status{Message: msg}
+func metaStatus(msg string) *metav1.Status {
+    return &metav1.Status{Message: msg}
 }
 
 // generatePatches creates JSONPatch ops according to the request

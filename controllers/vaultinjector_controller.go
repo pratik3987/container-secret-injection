@@ -2,7 +2,6 @@ package controllers
 
 import (
     "context"
-    "encoding/base64"
     "fmt"
 
     admissionv1 "k8s.io/api/admissionregistration/v1"
@@ -32,7 +31,6 @@ func (r *VaultInjectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
     if !ok {
         return ctrl.Result{}, fmt.Errorf("secret missing ca.crt")
     }
-    cbb := base64.StdEncoding.EncodeToString(ca)
 
     mwc := &admissionv1.MutatingWebhookConfiguration{}
     mwc.Name = "vault-webhook"
