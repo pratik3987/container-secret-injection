@@ -1,0 +1,36 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Run gofmt
+        run: gofmt -l . | tee /tmp/gofmt.txt && test -z "$(cat /tmp/gofmt.txt)"
+      - name: Run go vet
+        run: go vet ./...
+      - name: Run tests
+        run: go test ./... -v
+      - name: Build Docker images (no push)
+        run: |
+          docker build -f Dockerfile.webhook -t example/vault-webhook:webhook .
+          docker build -f Dockerfile.runner -t example/vault-webhook:runner .
+      - name: Scan built images with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: |
+            example/vault-webhook:webhook
+            example/vault-webhook:runner
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+      - name: Lint Kubernetes manifests
+        uses: instrumenta/kubectl@v1
+        with:
+          args: apply --dry-run=client -f k8s/

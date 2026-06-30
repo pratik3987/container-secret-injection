@@ -1,0 +1,39 @@
+replicaCount: 1
+
+image:
+  controller:
+    repository: example/vault-webhook
+    tag: controller
+    pullPolicy: IfNotPresent
+  webhook:
+    repository: example/vault-webhook
+    tag: webhook
+    pullPolicy: IfNotPresent
+  runner:
+    repository: example/vault-webhook
+    tag: runner
+    pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: vault-webhook
+
+rBAC:
+  create: true
+
+webhook:
+  serviceName: vault-webhook
+  serviceNamespace: default
+  tlsSecretName: vault-webhook-tls
+
+controller:
+  enabled: true
+  image: "{{ .Values.image.controller.repository }}:{{ .Values.image.controller.tag }}"
+  replicas: 1
+
+webhookDeployment:
+  enabled: true
+  image: "{{ .Values.image.webhook.repository }}:{{ .Values.image.webhook.tag }}"
+  replicas: 1
+
+resources: {}

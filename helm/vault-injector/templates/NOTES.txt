@@ -1,0 +1,12 @@
+Thank you for installing vault-injector.
+
+To verify the installation:
+
+1. Check controller pods:
+   kubectl get pods -l app=vault-webhook-controller
+
+2. Ensure webhook service exists:
+   kubectl get svc {{ .Values.webhook.serviceName }}
+
+3. Create a VaultInjector CR (sample included in templates):
+   kubectl apply -f {{ .Release.Name }}-vaultinjector.yaml

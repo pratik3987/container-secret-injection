@@ -1,0 +1,82 @@
+name: Daily Rebuild & Base Image Update
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily at 03:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  rebuild-and-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU and Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Discover base images
+        id: discover
+        run: |
+          set -euo pipefail
+          # find Dockerfiles at repo root and subfolders
+          files=$(git ls-files -- "Dockerfile*" || true)
+          echo "files=$files"
+          bases=""
+          for f in $files; do
+            while IFS= read -r line; do
+              case "$line" in
+                FROM*) img=$(echo "$line" | awk '{print $2}'); bases="$bases $img";;
+              esac
+            done < "$f"
+          done
+          # dedupe
+          bases=$(echo $bases | tr ' ' '\n' | sort -u | tr '\n' ' ')
+          echo "bases=$bases" >> $GITHUB_OUTPUT
+
+      - name: Pull base images and collect digests
+        id: digests
+        run: |
+          set -euo pipefail
+          bases="${{ steps.discover.outputs.bases }}"
+          echo "{}" > .github/image-digests.json || true
+          for img in $bases; do
+            if [ -z "$img" ]; then continue; fi
+            echo "Pulling $img"
+            docker pull --quiet "$img"
+            # get repo@digest from RepoDigests
+            rd=$(docker image inspect --format='{{range .RepoDigests}}{{println .}}{{end}}' "$img" | head -n1 || true)
+            if [ -z "$rd" ]; then
+              # fallback to manifest inspect via docker
+              rd=$(docker image inspect --format='{{.Id}}' "$img" || true)
+            fi
+            # extract sha256 part
+            digest=$(echo "$rd" | sed -n 's/.*@\(sha256:[a-f0-9]*\).*/\1/p')
+            if [ -z "$digest" ]; then
+              digest=$rd
+            fi
+            jq --arg k "$img" --arg v "$digest" '. + {($k): $v}' .github/image-digests.json > .github/image-digests.tmp && mv .github/image-digests.tmp .github/image-digests.json
+          done
+          cat .github/image-digests.json
+
+      - name: Rebuild images (pull base)
+        run: |
+          set -euo pipefail
+          docker buildx build --pull --load -f Dockerfile.webhook -t example/vault-webhook:webhook .
+          docker buildx build --pull --load -f Dockerfile.runner -t example/vault-webhook:runner .
+
+      - name: Create PR when digests changed
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update base image digests"
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          branch: chore/update-image-digests
+          title: "chore: update base image digests"
+          body: |-
+            This PR updates the tracked base image digests and rebuilds the images.
+          paths: |
+            .github/image-digests.json

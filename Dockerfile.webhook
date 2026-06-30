@@ -1,0 +1,9 @@
+FROM golang:1.20 AS builder
+WORKDIR /src
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /out/webhook ./cmd/webhook
+
+FROM gcr.io/distroless/base-debian11
+COPY --from=builder /out/webhook /usr/local/bin/webhook
+EXPOSE 8443
+ENTRYPOINT ["/usr/local/bin/webhook"]

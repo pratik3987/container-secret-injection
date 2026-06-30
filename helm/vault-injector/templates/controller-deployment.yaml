@@ -1,0 +1,21 @@
+{{- if .Values.controller.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-webhook-controller
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  selector:
+    matchLabels:
+      app: vault-webhook-controller
+  template:
+    metadata:
+      labels:
+        app: vault-webhook-controller
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: controller
+          image: {{ .Values.controller.image }}
+          args: ["-metrics-addr=:"]
+{{- end }}

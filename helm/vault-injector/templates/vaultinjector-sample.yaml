@@ -1,0 +1,8 @@
+apiVersion: vault.example.com/v1alpha1
+kind: VaultInjector
+metadata:
+  name: default-injector
+spec:
+  serviceName: {{ .Values.webhook.serviceName }}
+  serviceNamespace: {{ .Release.Namespace }}
+  caSecret: {{ .Values.webhook.tlsSecretName }}

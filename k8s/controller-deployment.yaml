@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-webhook-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-webhook-controller
+  template:
+    metadata:
+      labels:
+        app: vault-webhook-controller
+    spec:
+      serviceAccountName: vault-webhook
+      containers:
+        - name: controller
+          image: example/vault-webhook:controller
+          args: ["-metrics-addr=:"]

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+      annotations:
+        vault.example.com/enabled: "true"
+        vault.example.com/addr: "https://vault.example"
+        vault.example.com/role: "demo-role"
+        vault.example.com/secret-paths: "secret/data/app"
+    spec:
+      containers:
+        - name: app
+          image: busybox
+          command: ["/bin/sh","-c","echo starting; sleep 3600"]

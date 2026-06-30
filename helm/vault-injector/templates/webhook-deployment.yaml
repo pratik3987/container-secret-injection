@@ -1,0 +1,30 @@
+{{- if .Values.webhookDeployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-webhook
+spec:
+  replicas: {{ .Values.webhookDeployment.replicas }}
+  selector:
+    matchLabels:
+      app: vault-webhook
+  template:
+    metadata:
+      labels:
+        app: vault-webhook
+    spec:
+      containers:
+        - name: webhook
+          image: {{ .Values.webhookDeployment.image }}
+          args: ["-listen",":8443","-tls-cert-file","/tls/tls.crt","-tls-key-file","/tls/tls.key"]
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: {{ .Values.webhook.tlsSecretName }}
+{{- end }}
