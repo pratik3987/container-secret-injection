@@ -1,0 +1,4 @@
+{
+  "gcr.io/distroless/base-debian11": "sha256:ac69aa622ea5dcbca0803ca877d47d069f51bd4282d5c96977e0390d7d256455",
+  "golang:1.23": "sha256:60deed95d3888cc5e4d9ff8a10c54e5edc008c6ae3fba6187be6fb592e19e8c0"
+}
