@@ -15,16 +15,32 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Build images
         run: |
-          docker build -f Dockerfile.webhook -t localhost/vault-webhook:latest .
-          docker build -f Dockerfile.runner -t localhost/vault-runner:latest .
-          docker build -f cmd/controller/Dockerfile -t localhost/vault-controller:latest .
-      - name: Scan images with Trivy
+          docker build -f Dockerfile.webhook -t vault-webhook:latest .
+          docker build -f Dockerfile.runner -t vault-runner:latest .
+          docker build -f cmd/controller/Dockerfile -t vault-controller:latest .
+      - name: Save images as tar files
+        run: |
+          docker save vault-webhook:latest -o webhook.tar
+          docker save vault-runner:latest -o runner.tar
+          docker save vault-controller:latest -o controller.tar
+      - name: Scan webhook image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: |
-            localhost/vault-webhook:latest
-            localhost/vault-runner:latest
-            localhost/vault-controller:latest
+          input: 'webhook.tar'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+      - name: Scan runner image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'runner.tar'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+      - name: Scan controller image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'controller.tar'
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
