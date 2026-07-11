@@ -35,7 +35,7 @@ func (r *VaultInjectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	mwc := &admissionv1.MutatingWebhookConfiguration{}
 	mwc.Name = "vault-webhook"
 	mwc.Webhooks = []admissionv1.MutatingWebhook{{
-		Name: "vault.example.com",
+		Name: "vault.prtk.com",
 		ClientConfig: admissionv1.WebhookClientConfig{
 			Service:  &admissionv1.ServiceReference{Name: inst.Spec.ServiceName, Namespace: inst.Spec.ServiceNamespace, Path: ptrString("/mutate")},
 			CABundle: []byte(ca),

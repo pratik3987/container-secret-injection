@@ -12,12 +12,13 @@ import (
 )
 
 const (
-	annEnabled     = "vault.example.com/enabled"
-	annAuthMethod  = "vault.example.com/auth-method"
-	annRole        = "vault.example.com/role"
-	annAddr        = "vault.example.com/addr"
-	annNamespace   = "vault.example.com/namespace"
-	annSecretPaths = "vault.example.com/secret-paths"
+	annInject        = "vault.prtk.com/inject"
+	annAddr          = "vault.prtk.com/vault-addr"
+	annPath          = "vault.prtk.com/vault-path"
+	annSecretKeys    = "vault.prtk.com/vault-secret-keys"
+	annRole          = "vault.prtk.com/vault-role"
+	annInsecure      = "vault.prtk.com/vault-insecure"
+	annInitImage     = "vault.prtk.com/init-image"
 )
 
 func mutateHandler(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +58,7 @@ func mutateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ann := pod.ObjectMeta.Annotations
-	if ann == nil || ann[annEnabled] != "true" {
+	if ann == nil || ann[annInject] != "true" {
 		review.Response = &resp
 		writeResponse(w, &review)
 		return
@@ -99,9 +100,9 @@ func generatePatches(pod *corev1.Pod, ann map[string]string) []map[string]interf
 	patches = append(patches, map[string]interface{}{"op": "add", "path": "/spec/volumes/-", "value": vol})
 
 	// add init container that copies binary into shared volume
-	image := ann["vault.example.com/init-image"]
+	image := ann[annInitImage]
 	if image == "" {
-		image = "example/vault-env-runner:latest"
+		image = "ghcr.io/vault-injector/vault-env-runner:latest"
 	}
 	initc := map[string]interface{}{
 		"name":         "vault-env-init",
@@ -149,10 +150,10 @@ func generatePatches(pod *corev1.Pod, ann map[string]string) []map[string]interf
 		// inject vault config envs
 		envs := []map[string]string{
 			{"name": "VAULT_ADDR", "value": ann[annAddr]},
-			{"name": "VAULT_NAMESPACE", "value": ann[annNamespace]},
+			{"name": "VAULT_PATH", "value": ann[annPath]},
+			{"name": "VAULT_SECRET_KEYS", "value": ann[annSecretKeys]},
 			{"name": "VAULT_ROLE", "value": ann[annRole]},
-			{"name": "VAULT_AUTH_METHOD", "value": ann[annAuthMethod]},
-			{"name": "VAULT_SECRET_PATHS", "value": ann[annSecretPaths]},
+			{"name": "VAULT_INSECURE", "value": ann[annInsecure]},
 		}
 		for _, e := range envs {
 			if e["value"] == "" {

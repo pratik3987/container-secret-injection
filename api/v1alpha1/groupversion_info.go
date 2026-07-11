@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	Group   = "vault.example.com"
+	Group   = "vault.prtk.com"
 	Version = "v1alpha1"
 )
 

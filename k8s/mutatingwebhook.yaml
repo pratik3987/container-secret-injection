@@ -3,7 +3,7 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: vault-webhook
 webhooks:
-  - name: vault.example.com
+  - name: vault.prtk.com
     clientConfig:
       service:
         name: vault-webhook

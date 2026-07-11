@@ -1,4 +1,4 @@
-apiVersion: vault.example.com/v1alpha1
+apiVersion: vault.prtk.com/v1alpha1
 kind: VaultInjector
 metadata:
   name: default-injector

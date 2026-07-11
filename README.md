@@ -33,7 +33,7 @@ kubectl apply -f k8s/controller-deployment.yaml
 Create a `VaultInjector` resource to point the controller at the webhook service and CA secret. Example:
 
 ```yaml
-apiVersion: vault.example.com/v1alpha1
+apiVersion: vault.prtk.com/v1alpha1
 kind: VaultInjector
 metadata:
 	name: default-injector
@@ -121,7 +121,7 @@ kubectl create secret tls vault-webhook-tls \
 After installation, create a `VaultInjector` resource to configure the webhook:
 
 ```yaml
-apiVersion: vault.example.com/v1alpha1
+apiVersion: vault.prtk.com/v1alpha1
 kind: VaultInjector
 metadata:
   name: vault-config
@@ -136,7 +136,7 @@ Apply it:
 
 ```bash
 kubectl apply -f - <<EOF
-apiVersion: vault.example.com/v1alpha1
+apiVersion: vault.prtk.com/v1alpha1
 kind: VaultInjector
 metadata:
   name: vault-config
@@ -158,7 +158,7 @@ EOF
 
 ### Annotate Your Pods
 
-Add the `vault.example.com/inject: "true"` annotation to any Pod to enable secret injection:
+Add the `vault.prtk.com/inject: "true"` annotation to any Pod to enable secret injection. All secrets from the specified Vault path will be automatically injected as environment variables:
 
 ```yaml
 apiVersion: v1
@@ -166,10 +166,9 @@ kind: Pod
 metadata:
   name: my-app
   annotations:
-    vault.example.com/inject: "true"
-    vault.example.com/vault-addr: "https://vault.example.com:8200"
-    vault.example.com/vault-path: "kv/data/myapp/secrets"
-    vault.example.com/vault-secret-keys: "DATABASE_PASSWORD,API_KEY"
+    vault.prtk.com/inject: "true"
+    vault.prtk.com/vault-addr: "https://vault.prtk.com:8200"
+    vault.prtk.com/vault-path: "kv/data/myapp/secrets"
 spec:
   serviceAccountName: my-app-sa
   containers:
@@ -208,10 +207,9 @@ spec:
       labels:
         app: my-app
       annotations:
-        vault.example.com/inject: "true"
-        vault.example.com/vault-addr: "https://vault.example.com:8200"
-        vault.example.com/vault-path: "kv/data/myapp/config"
-        vault.example.com/vault-secret-keys: "DB_PASSWORD,API_TOKEN"
+        vault.prtk.com/inject: "true"
+        vault.prtk.com/vault-addr: "https://vault.prtk.com:8200"
+        vault.prtk.com/vault-path: "kv/data/myapp/config"
     spec:
       serviceAccountName: my-app-sa
       containers:
@@ -222,20 +220,21 @@ spec:
         env:
         - name: APP_ENV
           value: "production"
-        # Injected secrets will be available as environment variables:
-        # DB_PASSWORD, API_TOKEN
+        # All secrets from kv/data/myapp/config will be injected as environment variables
+        # For example, if Vault has 100 keys like DB_PASSWORD, API_TOKEN, CACHE_URL, etc.
+        # They will ALL be available as environment variables in the container
 ```
 
 ### Annotation Reference
 
 | Annotation | Required | Example | Description |
 |-----------|----------|---------|-------------|
-| `vault.example.com/inject` | Yes | `"true"` | Enable secret injection for this Pod |
-| `vault.example.com/vault-addr` | Yes | `"https://vault.example.com:8200"` | Vault server address |
-| `vault.example.com/vault-path` | Yes | `"kv/data/myapp/secrets"` | Path to KV v2 secret in Vault |
-| `vault.example.com/vault-secret-keys` | Yes | `"DB_PASS,API_KEY"` | Comma-separated list of secret keys to inject |
-| `vault.example.com/vault-role` | No | `"my-app-role"` | Kubernetes auth role (defaults to service account name) |
-| `vault.example.com/vault-insecure` | No | `"false"` | Set to `"true"` only for local dev (disables TLS verification) |
+| `vault.prtk.com/inject` | Yes | `"true"` | Enable secret injection for this Pod |
+| `vault.prtk.com/vault-addr` | Yes | `"https://vault.prtk.com:8200"` | Vault server address |
+| `vault.prtk.com/vault-path` | Yes | `"kv/data/myapp/secrets"` | Path to KV v2 secret in Vault |
+| `vault.prtk.com/vault-secret-keys` | No | `"DB_PASS,API_KEY"` | (Optional) Comma-separated list of specific keys to inject. If omitted, **ALL keys** from the path are automatically injected |
+| `vault.prtk.com/vault-role` | No | `"my-app-role"` | Kubernetes auth role (defaults to service account name) |
+| `vault.prtk.com/vault-insecure` | No | `"false"` | Set to `"true"` only for local dev (disables TLS verification) |
 
 ### Vault Setup
 
@@ -268,7 +267,7 @@ vault write auth/kubernetes/role/my-app-sa \
 
 ### Verify Injection
 
-Check if the sidecar was successfully injected:
+Check if the sidecar was successfully injected and secrets are available:
 
 ```bash
 # View the pod
@@ -278,14 +277,15 @@ kubectl get pod my-app -o jsonpath='{.spec.containers[*].name}'
 # Check the sidecar logs
 kubectl logs my-app -c vault-env-runner
 
-# Verify environment variables in the app container
-kubectl exec my-app -c app -- env | grep -E "DB_PASSWORD|API_KEY"
+# List all injected environment variables
+kubectl exec my-app -c app -- env | sort
+# All secrets from the Vault path should be listed
 ```
 
 ### Troubleshooting
 
 **Webhook not injecting sidecars:**
-- Verify the annotation `vault.example.com/inject: "true"` is present
+- Verify the annotation `vault.prtk.com/inject: "true"` is present
 - Check webhook pod logs: `kubectl logs -l app=vault-webhook`
 - Ensure `MutatingWebhookConfiguration` is created: `kubectl get mutatingwebhookconfigurations`
 
@@ -306,7 +306,7 @@ kubectl exec my-app -c app -- env | grep -E "DB_PASSWORD|API_KEY"
 helm uninstall vault-injector --namespace default
 
 # Remove CRD (optional, preserves existing resources)
-kubectl delete crd vaultinjectors.vault.example.com
+kubectl delete crd vaultinjectors.vault.prtk.com
 ```
 
 # container-secret-injection

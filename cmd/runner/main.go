@@ -22,7 +22,7 @@ func main() {
 	}
 	client.token = token
 
-	secrets, err := client.fetchKVv2Paths(cfg.SecretPaths)
+	secrets, err := client.fetchKVv2Secret(cfg.Path, cfg.SecretKeys)
 	if err != nil {
 		log.Fatalf("fetch secrets: %v", err)
 	}
@@ -59,43 +59,40 @@ func main() {
 }
 
 type config struct {
-	Addr        string
-	Namespace   string
-	Role        string
-	AuthMethod  string
-	SecretPaths []string
-	Insecure    bool
+	Addr         string
+	Path         string
+	SecretKeys   []string
+	Role         string
+	Insecure     bool
 }
 
 func loadConfigFromEnv() config {
-	paths := []string{}
-	if s := os.Getenv("VAULT_SECRET_PATHS"); s != "" {
-		for _, p := range strings.Split(s, ",") {
-			paths = append(paths, strings.TrimSpace(p))
+	var keys []string
+	if s := os.Getenv("VAULT_SECRET_KEYS"); s != "" {
+		for _, k := range strings.Split(s, ",") {
+			keys = append(keys, strings.TrimSpace(k))
 		}
 	}
 	insecure := false
-	if os.Getenv("VAULT_INSECURE_SKIP_VERIFY") == "true" {
+	if os.Getenv("VAULT_INSECURE") == "true" {
 		insecure = true
 	}
 	return config{
-		Addr:        os.Getenv("VAULT_ADDR"),
-		Namespace:   os.Getenv("VAULT_NAMESPACE"),
-		Role:        os.Getenv("VAULT_ROLE"),
-		AuthMethod:  os.Getenv("VAULT_AUTH_METHOD"),
-		SecretPaths: paths,
-		Insecure:    insecure,
+		Addr:       os.Getenv("VAULT_ADDR"),
+		Path:       os.Getenv("VAULT_PATH"),
+		SecretKeys: keys,
+		Role:       os.Getenv("VAULT_ROLE"),
+		Insecure:   insecure,
 	}
 }
 
 // minimal Vault client wrapper
 type vaultClient struct {
-	addr      string
-	namespace string
-	role      string
-	token     string
-	insecure  bool
-	httpc     *http.Client
+	addr     string
+	role     string
+	token    string
+	insecure bool
+	httpc    *http.Client
 }
 
 func newVaultClient(cfg config) *vaultClient {
@@ -117,10 +114,7 @@ func (v *vaultClient) loginWithKubernetes() (string, error) {
 	url := strings.TrimRight(v.addr, "/") + "/v1/auth/kubernetes/login"
 	req, _ := http.NewRequest("POST", url, strings.NewReader(string(bs)))
 	req.Header.Set("Content-Type", "application/json")
-	if v.namespace != "" {
-		req.Header.Set("X-Vault-Namespace", v.namespace)
-	}
-	resp, err := v.httpc.Do(req)
+	if v.namespace != "" {esp, err := v.httpc.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -140,31 +134,41 @@ func (v *vaultClient) loginWithKubernetes() (string, error) {
 func (v *vaultClient) fetchKVv2Paths(paths []string) (map[string]string, error) {
 	res := map[string]string{}
 	for _, p := range paths {
-		url := strings.TrimRight(v.addr, "/") + "/v1/" + strings.TrimPrefix(p, "/")
-		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Set("X-Vault-Token", v.token)
-		if v.namespace != "" {
-			req.Header.Set("X-Vault-Namespace", v.namespace)
-		}
-		resp, err := v.httpc.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		var body map[string]interface{}
-		if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
-			resp.Body.Close()
-			return nil, err
-		}
-		resp.Body.Close()
-		// KV v2 returns {data:{data: {...}}}
-		if d, ok := body["data"].(map[string]interface{}); ok {
-			if inner, ok := d["data"].(map[string]interface{}); ok {
+		url := strSecret fetches secrets from a KV v2 path
+// If secretKeys is empty, fetches all keys from the path
+// If secretKeys is provided, returns only those keys
+func (v *vaultClient) fetchKVv2Secret(path string, secretKeys []string) (map[string]string, error) {
+	res := map[string]string{}
+	
+	url := strings.TrimRight(v.addr, "/") + "/v1/" + strings.TrimPrefix(path, "/")
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-Vault-Token", v.token)
+	
+	resp, err := v.httpc.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	
+	var body map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return nil, err
+	}
+	
+	// KV v2 returns {data:{data: {...}}}
+	if d, ok := body["data"].(map[string]interface{}); ok {
+		if inner, ok := d["data"].(map[string]interface{}); ok {
+			// If no specific keys requested, fetch all
+			if len(secretKeys) == 0 {
 				for k, v := range inner {
 					res[k] = fmt.Sprintf("%v", v)
 				}
-			}
-		}
-	}
+			} else {
+				// Otherwise, fetch only requested keys
+				for _, key := range secretKeys {
+					if val, exists := inner[key]; exists {
+						res[key] = fmt.Sprintf("%v", val)
+					}
 	return res, nil
 }
 

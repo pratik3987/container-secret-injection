@@ -12,10 +12,10 @@ spec:
       labels:
         app: sample-app
       annotations:
-        vault.example.com/enabled: "true"
-        vault.example.com/addr: "https://vault.example"
-        vault.example.com/role: "demo-role"
-        vault.example.com/secret-paths: "secret/data/app"
+        vault.prtk.com/inject: "true"
+        vault.prtk.com/vault-addr: "https://vault.prtk.com:8200"
+        vault.prtk.com/vault-path: "kv/data/app"
+        vault.prtk.com/vault-role: "demo-role"
     spec:
       containers:
         - name: app

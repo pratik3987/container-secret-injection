@@ -1,4 +1,4 @@
-name: Image Security Scan
+name: Image Security Scan (Trivy)
 
 on:
   push:

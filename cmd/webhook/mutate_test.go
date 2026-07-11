@@ -37,7 +37,7 @@ func TestSkipWhenNotEnabled(t *testing.T) {
 
 func TestPatchGeneratedWhenEnabled(t *testing.T) {
 	pod := corev1.Pod{}
-	pod.ObjectMeta.Annotations = map[string]string{"vault.example.com/enabled": "true", "vault.example.com/addr": "https://vault.example", "vault.example.com/secret-paths": "secret/data/app"}
+	pod.ObjectMeta.Annotations = map[string]string{"vault.prtk.com/inject": "true", "vault.prtk.com/vault-addr": "https://vault.prtk.com", "vault.prtk.com/vault-path": "kv/data/app"}
 	req := admissionv1.AdmissionReview{}
 	req.Request = &admissionv1.AdmissionRequest{Kind: metav1.GroupVersionKind{Kind: "Pod"}, Operation: admissionv1.Create}
 	raw, _ := json.Marshal(pod)
