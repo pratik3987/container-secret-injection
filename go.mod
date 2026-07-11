@@ -1,6 +1,6 @@
 module github.com/example/vault-webxy
 
-go 1.23
+go 1.25
 
 require (
     k8s.io/api v0.29.0

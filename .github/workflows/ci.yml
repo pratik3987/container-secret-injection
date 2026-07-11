@@ -14,7 +14,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.23'
+          go-version: '1.25'
       - name: Run gofmt
         run: gofmt -l . | tee /tmp/gofmt.txt && test -z "$(cat /tmp/gofmt.txt)"
       - name: Run go vet
