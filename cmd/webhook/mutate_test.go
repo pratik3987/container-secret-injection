@@ -9,12 +9,13 @@ import (
 
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestSkipWhenNotEnabled(t *testing.T) {
 	pod := corev1.Pod{}
 	req := admissionv1.AdmissionReview{}
-	req.Request = &admissionv1.AdmissionRequest{Kind: admissionv1.GroupVersionKind{Kind: "Pod"}, Operation: admissionv1.Create}
+	req.Request = &admissionv1.AdmissionRequest{Kind: metav1.GroupVersionKind{Kind: "Pod"}, Operation: admissionv1.Create}
 	raw, _ := json.Marshal(pod)
 	req.Request.Object.Raw = raw
 
@@ -38,7 +39,7 @@ func TestPatchGeneratedWhenEnabled(t *testing.T) {
 	pod := corev1.Pod{}
 	pod.ObjectMeta.Annotations = map[string]string{"vault.example.com/enabled": "true", "vault.example.com/addr": "https://vault.example", "vault.example.com/secret-paths": "secret/data/app"}
 	req := admissionv1.AdmissionReview{}
-	req.Request = &admissionv1.AdmissionRequest{Kind: admissionv1.GroupVersionKind{Kind: "Pod"}, Operation: admissionv1.Create}
+	req.Request = &admissionv1.AdmissionRequest{Kind: metav1.GroupVersionKind{Kind: "Pod"}, Operation: admissionv1.Create}
 	raw, _ := json.Marshal(pod)
 	req.Request.Object.Raw = raw
 
