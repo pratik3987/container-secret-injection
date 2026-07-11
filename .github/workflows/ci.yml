@@ -15,6 +15,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.25'
+      - name: Generate controller code
+        run: |
+          go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.16.0
+          /home/runner/go/bin/controller-gen object:headerFile="" paths="./api/..."
       - name: Run gofmt
         run: gofmt -l . | tee /tmp/gofmt.txt && test -z "$(cat /tmp/gofmt.txt)"
       - name: Run go vet
