@@ -63,7 +63,7 @@ jobs:
           cat .github/image-digests.json
 
       - name: Log in to GHCR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
