@@ -83,20 +83,23 @@ jobs:
 
 
       - name: Create PR when digests changed
-        uses: peter-evans/create-pull-request@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: update base image digests"
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          branch: chore/update-image-digests
-          delete-branch: true
-          title: "chore: update base image digests"
-          body: |-
-            This PR updates the tracked base image digests and rebuilds the images.
-          pathspec: |
-            .github/image-digests.json
-          add-paths: |
-            .github/image-digests.json
-          labels: |
-            automation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B chore/update-image-digests
+          git add .github/image-digests.json
+          if git diff --cached --quiet; then
+            echo "No digest changes detected."
+            exit 0
+          fi
+          git commit -m "chore: update base image digests"
+          git push origin chore/update-image-digests --force
+          gh pr create \
+            --title "chore: update base image digests" \
+            --body "This PR updates the tracked base image digests and rebuilds the images." \
+            --base main \
+            --head chore/update-image-digests \
+            --label automation || true
