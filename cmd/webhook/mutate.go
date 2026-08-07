@@ -12,13 +12,13 @@ import (
 )
 
 const (
-	annInject    = "vault.prtk.com/inject"
-	annAddr      = "vault.prtk.com/vault-addr"
-	annPath      = "vault.prtk.com/vault-path"
+	annInject     = "vault.prtk.com/inject"
+	annAddr       = "vault.prtk.com/vault-addr"
+	annPath       = "vault.prtk.com/vault-path"
 	annSecretKeys = "vault.prtk.com/vault-secret-keys"
-	annRole      = "vault.prtk.com/vault-role"
-	annInsecure  = "vault.prtk.com/vault-insecure"
-	annInitImage = "vault.prtk.com/init-image"
+	annRole       = "vault.prtk.com/vault-role"
+	annInsecure   = "vault.prtk.com/vault-insecure"
+	annInitImage  = "vault.prtk.com/init-image"
 )
 
 func mutateHandler(w http.ResponseWriter, r *http.Request) {
