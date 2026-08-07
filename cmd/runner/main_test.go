@@ -33,7 +33,7 @@ func TestLoginAndFetchKVv2(t *testing.T) {
 		t.Fatalf("login failed: %v", err)
 	}
 	client.token = token
-	secrets, err := client.fetchKVv2Paths([]string{"secret/data/app"})
+	secrets, err := client.fetchKVv2Secret("secret/data/app", nil)
 	if err != nil {
 		t.Fatalf("fetch failed: %v", err)
 	}
