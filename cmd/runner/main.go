@@ -87,12 +87,12 @@ func loadConfigFromEnv() config {
 }
 
 type vaultClient struct {
-	addr     string
+	addr      string
 	namespace string
-	role     string
-	token    string
-	insecure bool
-	httpc    *http.Client
+	role      string
+	token     string
+	insecure  bool
+	httpc     *http.Client
 }
 
 func newVaultClient(cfg config) *vaultClient {
@@ -101,11 +101,11 @@ func newVaultClient(cfg config) *vaultClient {
 		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 	return &vaultClient{
-		addr:     cfg.Addr,
+		addr:      cfg.Addr,
 		namespace: cfg.Namespace,
-		role:     cfg.Role,
-		insecure: cfg.Insecure,
-		httpc:    &http.Client{Timeout: 10 * time.Second, Transport: tr},
+		role:      cfg.Role,
+		insecure:  cfg.Insecure,
+		httpc:     &http.Client{Timeout: 10 * time.Second, Transport: tr},
 	}
 }
 

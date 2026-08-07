@@ -92,14 +92,14 @@ func metaStatus(msg string) *metav1.Status {
 func generatePatches(pod *corev1.Pod, ann map[string]string) []map[string]interface{} {
 	patches := []map[string]interface{}{}
 
-	// add shared emptyDir volume
+	// Add shared emptyDir volume.
 	vol := map[string]interface{}{
 		"name":     "vault-env-shared",
 		"emptyDir": map[string]interface{}{},
 	}
 	patches = append(patches, map[string]interface{}{"op": "add", "path": "/spec/volumes/-", "value": vol})
 
-	// add init container that copies binary into shared volume
+	// Add init container that copies binary into shared volume.
 	image := ann[annInitImage]
 	if image == "" {
 		image = "ghcr.io/vault-injector/vault-env-runner:latest"

@@ -40,7 +40,7 @@ func TestLoginAndFetchKVv2(t *testing.T) {
 	if secrets["DB_PASS"] != "hunter2" {
 		t.Fatalf("unexpected secret value: %v", secrets)
 	}
-	// ensure env export doesn't crash
+	// Ensure env export doesn't crash.
 	os.Setenv("VAULT_ORIG_CMD", "[]")
 	os.Setenv("VAULT_ORIG_ARGS", "[]")
 }
