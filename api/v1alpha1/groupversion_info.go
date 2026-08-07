@@ -22,4 +22,6 @@ func addKnownTypes(s *runtime.Scheme) error {
 	return nil
 }
 
-func AddToScheme(s *runtime.Scheme) error { return SchemeBuilder.AddToScheme(s) }
+func AddToScheme(s *runtime.Scheme) error {
+	return SchemeBuilder.AddToScheme(s)
+}

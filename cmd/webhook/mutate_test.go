@@ -59,5 +59,5 @@ func TestPatchGeneratedWhenEnabled(t *testing.T) {
 	}
 }
 
-// helper to create io.Reader from bytes
+// helper to create io.Reader from bytes.
 func bytesReader(b []byte) *bytes.Reader { return bytes.NewReader(b) }

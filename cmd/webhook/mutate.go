@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	admissionv1 "k8s.io/api/admission/v1"
@@ -12,17 +12,17 @@ import (
 )
 
 const (
-	annInject        = "vault.prtk.com/inject"
-	annAddr          = "vault.prtk.com/vault-addr"
-	annPath          = "vault.prtk.com/vault-path"
-	annSecretKeys    = "vault.prtk.com/vault-secret-keys"
-	annRole          = "vault.prtk.com/vault-role"
-	annInsecure      = "vault.prtk.com/vault-insecure"
-	annInitImage     = "vault.prtk.com/init-image"
+	annInject    = "vault.prtk.com/inject"
+	annAddr      = "vault.prtk.com/vault-addr"
+	annPath      = "vault.prtk.com/vault-path"
+	annSecretKeys = "vault.prtk.com/vault-secret-keys"
+	annRole      = "vault.prtk.com/vault-role"
+	annInsecure  = "vault.prtk.com/vault-insecure"
+	annInitImage = "vault.prtk.com/init-image"
 )
 
 func mutateHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "could not read request", http.StatusBadRequest)
 		return

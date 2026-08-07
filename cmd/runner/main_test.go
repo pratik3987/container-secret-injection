@@ -9,12 +9,12 @@ import (
 )
 
 func TestLoginAndFetchKVv2(t *testing.T) {
-	// Skip this test in CI environments where Kubernetes token is not available
+	// Skip this test in CI environments where Kubernetes token is not available.
 	if _, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount/token"); err != nil {
 		t.Skip("Skipping integration test: Kubernetes service account token not available")
 	}
 
-	// mock Vault server
+	// Mock Vault server.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/auth/kubernetes/login", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
