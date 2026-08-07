@@ -90,8 +90,13 @@ jobs:
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           branch: chore/update-image-digests
+          delete-branch: true
           title: "chore: update base image digests"
           body: |-
             This PR updates the tracked base image digests and rebuilds the images.
-          paths: |
+          pathspec: |
             .github/image-digests.json
+          add-paths: |
+            .github/image-digests.json
+          labels: |
+            automation
